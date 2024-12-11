@@ -5,11 +5,11 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 import './globals.css';
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
-  title: 'Next.js Chatbot Template',
-  description: 'Next.js chatbot template using the AI SDK.',
-};
+// export const metadata: Metadata = {
+//   metadataBase: new URL('https://chat.vercel.ai'),
+//   title: 'Next.js Chatbot Template',
+//   description: 'Next.js chatbot template using the AI SDK.',
+// };
 
 export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
@@ -35,6 +35,38 @@ const THEME_COLOR_SCRIPT = `\
   updateThemeColor();
 })();`;
 
+const MENDIX_EXTENSION_SCRIPT = `
+function sendMessage(message, data) {
+    if (window.chrome?.webview) {
+        window.chrome.webview.postMessage({ message, data })
+    } else if (window.webkit?.messageHandlers.studioPro) {
+        window.webkit.messageHandlers.studioPro.postMessage(JSON.stringify({ message, data }))
+    }
+}
+function registerMessageListener(eventHandler) {
+    if (window.chrome?.webview) {
+        window.chrome.webview.addEventListener("message", (event) => eventHandler(event.data))
+        sendMessage("MessageListenerRegistered")
+    } else if (window.webkit?.messageHandlers.studioPro) {
+        window.WKPostMessage = (json) => {
+            const wkMessage = JSON.parse(json)
+            eventHandler(wkMessage)
+        }
+        sendMessage("MessageListenerRegistered")
+    }
+}
+function init() {
+    registerMessageListener(msgHandler);
+}
+function msgHandler(event) {
+    console.log('message sent to JS: '+event.data);
+}
+function create() {
+    sendMessage('entity', {a:1});
+}
+document.onload = init;
+`
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -53,6 +85,11 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: THEME_COLOR_SCRIPT,
+          }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: MENDIX_EXTENSION_SCRIPT,
           }}
         />
       </head>
