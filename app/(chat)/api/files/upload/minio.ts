@@ -1,10 +1,9 @@
 import { Client } from "minio";
 import { createHash } from "crypto";
-import { createReadStream, ReadStream } from "fs";
-import { config } from "dotenv";
-import fs from "fs";
+import { createReadStream } from "fs";
+// import { config } from "dotenv";
 
-config();
+// config({path: '.env.play'});
 
 export interface Option {
   endPoint: string;
@@ -113,8 +112,8 @@ async function calculateHash(fileSource: string | File): Promise<string> {
 // 初始化 MinioService 实例
 const minioService = new MinioService({
   endPoint: process.env.MINIO_ENDPOINT!,
-  port: 9000,
-  useSSL: false,
+  port: +process.env.MINIO_PORT!,
+  useSSL: true,// FIXME: hard code
   accessKey: process.env.MINIO_ACCESS_KEY!,
   secretKey: process.env.MINIO_SECRET_KEY!,
   bucketName: process.env.MINIO_BUCKET!,
@@ -142,9 +141,10 @@ export async function uploadToMinio(fileSource: string | File) {
     console.log("Public URL:", url);
     // FIXME: I need a https server to make openai happy
     const result = {
-      url: 'https://i.ibb.co/5Y0bPC0/entity.png',
-      // pathname: "/" + fileName,
-      pathname: "/entity.png",
+      // url: 'https://i.ibb.co/5Y0bPC0/entity.png',
+      url,
+      pathname: "/" + fileName,
+      // pathname: "/entity.png",
       contentType: "image/png",
     };
 
